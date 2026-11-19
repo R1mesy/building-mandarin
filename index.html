@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>四年級國語課堂工具</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#17324D;--paper:#F3F0E8;--ink:#1A2B3C;--orange:#E8833A;--card:#FBFAF6;--muted:#55636F}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--paper);color:var(--ink)}
+header{background:var(--blue);color:#EEF3F8;padding:28px 24px;border-bottom:4px solid var(--orange)}
+header h1{margin:0;font-size:32px;font-weight:900}
+header p{margin:6px 0 0;color:#C3D5E6}
+main{max-width:900px;margin:0 auto;padding:32px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+a.card{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;background:var(--card);border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);padding:24px}
+a.card:hover{transform:translate(-2px,-2px);box-shadow:10px 10px 0 var(--ink)}
+a.card:focus-visible{outline:3px solid var(--orange);outline-offset:4px}
+.card h2{margin:0;font-size:26px}
+.card p{margin:0;color:var(--muted);font-size:16px;line-height:1.6}
+.card span{margin-top:auto;font-weight:700;color:#A84B14}
+</style>
+</head>
+<body>
+<header>
+  <h1>四年級國語課堂工具</h1>
+  <p>第八課〈建築界的長頸鹿〉</p>
+</header>
+<main>
+  <a class="card" href="sentence-game.html">
+    <h2>造句工地</h2>
+    <p>看圖造句：第一關「假如……」，第二關「如果……就……」。造對一句，大樓就蓋高一層。</p>
+    <span>開始遊戲 →</span>
+  </a>
+  <a class="card" href="class-points.html">
+    <h2>班級加分板</h2>
+    <p>新增學生名字，點頭像加分得笑臉、扣分出現不高興的臉。資料存在這台電腦的瀏覽器。</p>
+    <span>打開加分板 →</span>
+  </a>
+</main>
+</body>
+</html>

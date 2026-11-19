@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>造句工地</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* 藍圖工地：方格紙底、深藍圖框、工程橘強調；第一關橘色塔、第二關藍色塔 */
+  --paper:#F3F0E8;
+  --grid:#E3DCCB;
+  --ink:#1A2B3C;
+  --blue:#17324D;
+  --orange:#E8833A;
+  --rust:#A84B14;
+  --navy:#1F4E79;
+  --sand:#F6DCC2;
+  --sky:#D3E3F0;
+  --card:#FBFAF6;
+  --muted:#55636F;
+  --good:#24804B;
+  --font-display:"Oswald","Noto Sans TC",system-ui,sans-serif;
+  --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--font-body);color:var(--ink);background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:32px 32px;line-height:1.5}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+
+header{background:var(--blue);color:#EEF3F8;padding:14px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;border-bottom:4px solid var(--orange)}
+header h1{margin:0;font-size:28px;font-weight:900;letter-spacing:.04em}
+header .sub{font-size:14px;color:#C3D5E6}
+.levels{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+.lv{border:2px solid #4D6F92;background:transparent;color:#EEF3F8;border-radius:12px;padding:8px 16px;font-weight:700;font-size:17px;display:flex;flex-direction:column;align-items:flex-start;line-height:1.3}
+.lv small{font-family:var(--font-display);font-size:12px;letter-spacing:.12em;color:#C3D5E6;font-weight:500}
+.lv.on.l1{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.lv.on.l2{background:#7FB3E0;border-color:#7FB3E0;color:var(--ink)}
+.lv.on small{color:var(--ink)}
+
+.wrap{max-width:1360px;margin:0 auto;padding:20px 24px 40px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px}
+@media (max-width:980px){.wrap{grid-template-columns:1fr}}
+
+.panel{background:var(--card);border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink)}
+.scene-head{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:3px solid var(--ink);flex-wrap:wrap}
+.code{font-family:var(--font-display);font-size:15px;letter-spacing:.14em;color:var(--rust);font-weight:600}
+.scene-head h2{margin:0;font-size:26px;font-weight:900}
+.dots{margin-left:auto;display:flex;gap:6px}
+.dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);background:var(--card);font-family:var(--font-display);font-size:14px;font-weight:600;display:grid;place-items:center;padding:0}
+.dot.done{background:var(--good);color:#fff;border-color:var(--good)}
+.dot.cur{box-shadow:0 0 0 3px var(--orange)}
+.scene{display:block;width:100%;height:auto;aspect-ratio:16/10;border-bottom:3px solid var(--ink);background:#dfe9f2}
+
+.work{padding:18px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.pattern{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:20px}
+.chip{padding:4px 14px;border-radius:999px;font-weight:700;border:2px solid var(--ink)}
+.chip.if{background:var(--sand)}
+.chip.then{background:var(--sky)}
+.arrow{font-weight:900;color:var(--muted)}
+.hints{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:15px;color:var(--muted)}
+.hint{border:1.5px dashed var(--muted);border-radius:8px;padding:2px 10px;background:#fff;color:var(--ink);font-size:16px}
+.hint:hover{border-color:var(--orange);border-style:solid}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.who{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted)}
+.who input{border:2px solid var(--ink);border-radius:8px;padding:6px 10px;width:160px;background:#fff}
+textarea{width:100%;min-height:96px;border:3px solid var(--ink);border-radius:10px;padding:12px 14px;font-size:26px;line-height:1.5;background:#fff;resize:vertical}
+.btn{border:3px solid var(--ink);border-radius:10px;padding:10px 20px;font-weight:900;font-size:18px;background:#fff;box-shadow:4px 4px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn.go{background:var(--orange)}
+.btn.ai{background:var(--sky)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+.feedback{border:3px solid var(--ink);border-radius:12px;padding:14px 18px;display:none;flex-direction:column;gap:8px;font-size:19px}
+.feedback.show{display:flex}
+.feedback.ok{background:#E3F4E9;border-color:var(--good)}
+.feedback.no{background:#FDECE3;border-color:var(--rust)}
+.feedback.info{background:var(--sky);border-color:var(--navy)}
+.fb-title{font-weight:900;font-size:22px}
+.stars{font-size:28px;letter-spacing:4px;color:var(--orange)}
+.checks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:17px}
+.checks li::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.checks li.y::before{background:var(--good)}
+.checks li.n::before{background:var(--rust)}
+.mark-if{background:var(--sand);padding:0 4px;border-radius:4px}
+.mark-then{background:var(--sky);padding:0 4px;border-radius:4px}
+.kw{color:var(--rust);font-weight:900}
+
+/* side */
+.side{display:flex;flex-direction:column;gap:20px}
+.site{padding:16px 16px 0}
+.site h3,.wall h3{margin:0 0 4px;font-size:20px;font-weight:900}
+.site p.note{margin:0 0 10px;font-size:14px;color:var(--muted)}
+.towers{display:flex;justify-content:space-around;align-items:flex-end;gap:16px;height:340px;border-bottom:4px solid var(--ink);position:relative}
+.tower{display:flex;flex-direction:column-reverse;align-items:center;width:120px;max-height:330px;overflow:hidden}
+.base{width:120px;height:20px;background:var(--ink)}
+.floor{width:104px;height:26px;border:2px solid var(--ink);border-bottom:none;display:flex;align-items:center;justify-content:center;gap:4px;animation:drop .5s cubic-bezier(.3,1.4,.5,1)}
+.floor i{width:12px;height:12px;background:#FFF6D8;border:1.5px solid var(--ink)}
+.t1 .floor{background:var(--orange)}
+.t2 .floor{background:#7FB3E0}
+.spire{width:6px;height:30px;background:var(--ink)}
+.roof{width:70px;height:16px;background:var(--ink);clip-path:polygon(15% 100%,85% 100%,100% 0,0 0)}
+@keyframes drop{from{transform:translateY(-120px);opacity:0}to{transform:none;opacity:1}}
+.tlabels{display:flex;justify-content:space-around;padding:8px 0 14px;font-weight:700;font-size:15px;text-align:center}
+.tlabels b{display:block;font-family:var(--font-display);font-size:24px}
+
+.wall{padding:16px}
+.wall ol{margin:8px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto}
+.wall li{border-left:6px solid var(--orange);background:#fff;padding:8px 10px;font-size:17px;line-height:1.45}
+.wall li.l2{border-left-color:#7FB3E0}
+.wall li span{display:block;font-size:13px;color:var(--muted)}
+.wall .empty{color:var(--muted);font-size:15px;border:none;background:none;padding:0}
+.wall .tools{display:flex;gap:8px;margin-top:10px}
+.small{border:2px solid var(--ink);background:#fff;border-radius:8px;padding:4px 10px;font-size:14px;font-weight:700}
+
+.celebrate{position:fixed;inset:0;background:rgba(23,50,77,.55);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.celebrate.show{display:flex}
+.cel-card{background:var(--card);border:4px solid var(--ink);box-shadow:10px 10px 0 var(--ink);padding:28px 36px;max-width:520px;text-align:center;display:flex;flex-direction:column;gap:12px}
+.cel-card h2{margin:0;font-size:32px;font-weight:900}
+.cel-card p{margin:0;font-size:19px}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>造句工地</h1>
+    <div class="sub">看圖造句，造對一句，大樓就蓋高一層</div>
+  </div>
+  <div class="levels" role="tablist">
+    <button class="lv l1 on" id="lv1" role="tab" aria-selected="true"><small>LEVEL 1</small>第一關　假如……</button>
+    <button class="lv l2" id="lv2" role="tab" aria-selected="false"><small>LEVEL 2</small>第二關　如果……就……</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <main class="panel">
+    <div class="scene-head">
+      <span class="code" id="code">L1-01</span>
+      <h2 id="sceneTitle">情境</h2>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div id="sceneBox"></div>
+    <div class="work">
+      <div class="pattern" id="pattern"></div>
+      <div class="hints" id="hints"></div>
+      <label for="answer" class="who" style="display:none">句子</label>
+      <textarea id="answer" aria-label="在這裡寫下你的句子"></textarea>
+      <div class="row">
+        <button class="btn go" id="check">檢查句子</button>
+        <button class="btn ai" id="aiBtn" hidden>請 AI 小老師看看</button>
+        <button class="btn" id="example">看範例</button>
+        <button class="btn" id="next">下一題 →</button>
+        <span class="who"><label for="name">造句的人</label><input id="name" placeholder="例如：3 號 小明"></span>
+      </div>
+      <div class="feedback" id="fb" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <aside class="side">
+    <section class="panel site">
+      <h3>工地進度</h3>
+      <p class="note">每造對一句加蓋一層。窗戶的數量就是得到的星星。</p>
+      <div class="towers">
+        <div class="tower t1" id="tower1"></div>
+        <div class="tower t2" id="tower2"></div>
+      </div>
+      <div class="tlabels">
+        <div><b id="n1">0</b>假如塔</div>
+        <div><b id="n2">0</b>如果就塔</div>
+      </div>
+    </section>
+    <section class="panel wall">
+      <h3>句子牆</h3>
+      <ol id="wall"></ol>
+      <div class="tools"><button class="small" id="clearWall">清空句子牆與大樓</button></div>
+    </section>
+  </aside>
+</div>
+
+<div class="celebrate" id="cel" role="dialog" aria-modal="true" aria-labelledby="celTitle">
+  <div class="cel-card">
+    <h2 id="celTitle">第一關完工！</h2>
+    <p id="celText">五個情境都造好句子了。</p>
+    <button class="btn go" id="celGo">前往第二關</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- drawing helpers (viewBox 640x400) ---------- */
+const K = "#1A2B3C";
+const sky = c => `<rect width="640" height="400" fill="${c}"/>`;
+const ground = (c,y) => `<rect y="${y}" width="640" height="${400-y}" fill="${c}"/>`;
+const cloud = (x,y,s,c) => `<g fill="${c||"#fff"}" transform="translate(${x} ${y}) scale(${s})"><ellipse cx="0" cy="0" rx="42" ry="22"/><ellipse cx="34" cy="-12" rx="34" ry="26"/><ellipse cx="68" cy="2" rx="36" ry="20"/></g>`;
+const sun = (x,y) => `<g><circle cx="${x}" cy="${y}" r="34" fill="#FFD23F"/>${[0,45,90,135,180,225,270,315].map(a=>`<line x1="${x+Math.cos(a*Math.PI/180)*44}" y1="${y+Math.sin(a*Math.PI/180)*44}" x2="${x+Math.cos(a*Math.PI/180)*58}" y2="${y+Math.sin(a*Math.PI/180)*58}" stroke="#FFD23F" stroke-width="6" stroke-linecap="round"/>`).join("")}</g>`;
+function building(x,y,w,h,c,lit){
+  let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}" stroke="${K}" stroke-width="3"/>`;
+  for(let yy=y+14; yy<y+h-24; yy+=30) for(let xx=x+12; xx<x+w-18; xx+=26)
+    s += `<rect x="${xx}" y="${yy}" width="14" height="16" fill="${lit||"#FFF6D8"}" stroke="${K}" stroke-width="1.5"/>`;
+  return s;
+}
+function kid(x,y,shirt,opts){
+  opts = opts||{};
+  const face = opts.sad
+    ? `<path d="M${x-7} ${y-28} Q${x} ${y-34} ${x+7} ${y-28}" fill="none" stroke="${K}" stroke-width="2.5" stroke-linecap="round"/>`
+    : `<path d="M${x-7} ${y-32} Q${x} ${y-25} ${x+7} ${y-32}" fill="none" stroke="${K}" stroke-width="2.5" stroke-linecap="round"/>`;
+  return `<g>
+    <rect x="${x-6}" y="${y+28}" width="5" height="26" fill="${K}"/><rect x="${x+2}" y="${y+28}" width="5" height="26" fill="${K}"/>
+    <rect x="${x-17}" y="${y-14}" width="34" height="46" rx="10" fill="${shirt}" stroke="${K}" stroke-width="3"/>
+    <circle cx="${x}" cy="${y-38}" r="22" fill="#F7D2AE" stroke="${K}" stroke-width="3"/>
+    <path d="M${x-22} ${y-42} Q${x} ${y-72} ${x+22} ${y-42} Q${x} ${y-52} ${x-22} ${y-42}Z" fill="${K}"/>
+    <circle cx="${x-8}" cy="${y-38}" r="2.6" fill="${K}"/><circle cx="${x+8}" cy="${y-38}" r="2.6" fill="${K}"/>
+    ${face}
+    ${opts.helmet?`<path d="M${x-25} ${y-46} Q${x} ${y-80} ${x+25} ${y-46}Z" fill="#FFD23F" stroke="${K}" stroke-width="3"/><rect x="${x-28}" y="${y-48}" width="56" height="6" rx="3" fill="#FFD23F" stroke="${K}" stroke-width="2"/>`:""}
+  </g>`;
+}
+function tower101(x,base,scale,c){
+  scale = scale||1; c = c||"#9DB7CF";
+  let s = `<rect x="${x-28*scale}" y="${base-60*scale}" width="${56*scale}" height="${60*scale}" fill="${c}" stroke="${K}" stroke-width="3"/>`;
+  for(let i=0;i<8;i++){
+    const b = base-60*scale-i*26*scale, t = b-26*scale;
+    s += `<path d="M${x-22*scale} ${b} L${x-30*scale} ${t} L${x+30*scale} ${t} L${x+22*scale} ${b}Z" fill="${c}" stroke="${K}" stroke-width="3"/>`;
+  }
+  const top = base-60*scale-8*26*scale;
+  s += `<rect x="${x-12*scale}" y="${top-22*scale}" width="${24*scale}" height="${22*scale}" fill="${c}" stroke="${K}" stroke-width="3"/><line x1="${x}" y1="${top-22*scale}" x2="${x}" y2="${top-60*scale}" stroke="${K}" stroke-width="4"/>`;
+  return s;
+}
+function firework(x,y,r,c){
+  let s = "";
+  for(let i=0;i<12;i++){ const a=i*30*Math.PI/180; s+=`<line x1="${x+Math.cos(a)*r*.3}" y1="${y+Math.sin(a)*r*.3}" x2="${x+Math.cos(a)*r}" y2="${y+Math.sin(a)*r}" stroke="${c}" stroke-width="4" stroke-linecap="round"/><circle cx="${x+Math.cos(a)*r*1.15}" cy="${y+Math.sin(a)*r*1.15}" r="3.5" fill="${c}"/>`; }
+  return s;
+}
+function rain(){ let s=""; for(let i=0;i<70;i++){ const x=(i*97)%640, y=(i*53)%300; s+=`<line x1="${x}" y1="${y}" x2="${x-8}" y2="${y+22}" stroke="#E8F1F8" stroke-width="2.5" stroke-linecap="round" opacity=".85"/>`; } return s; }
+function giraffe(x,y){
+  return `<g stroke="${K}" stroke-width="3">
+    <rect x="${x-34}" y="${y+40}" width="8" height="70" fill="#F2C35B"/><rect x="${x-10}" y="${y+40}" width="8" height="70" fill="#F2C35B"/><rect x="${x+20}" y="${y+40}" width="8" height="70" fill="#F2C35B"/><rect x="${x+42}" y="${y+40}" width="8" height="70" fill="#F2C35B"/>
+    <ellipse cx="${x+8}" cy="${y+30}" rx="56" ry="32" fill="#F2C35B"/>
+    <path d="M${x+38} ${y+14} L${x+62} ${y-150} L${x+84} ${y-146} L${x+62} ${y+20}Z" fill="#F2C35B"/>
+    <ellipse cx="${x+86}" cy="${y-160}" rx="30" ry="18" fill="#F2C35B" transform="rotate(-15 ${x+86} ${y-160})"/>
+    <line x1="${x+66}" y1="${y-176}" x2="${x+62}" y2="${y-196}"/><line x1="${x+80}" y1="${y-180}" x2="${x+80}" y2="${y-200}"/>
+    <circle cx="${x+62}" cy="${y-198}" r="4" fill="#A0714F"/><circle cx="${x+80}" cy="${y-202}" r="4" fill="#A0714F"/>
+  </g>
+  <g fill="#A0714F"><circle cx="${x-10}" cy="${y+22}" r="8"/><circle cx="${x+20}" cy="${y+36}" r="7"/><circle cx="${x+34}" cy="${y+14}" r="6"/><circle cx="${x-28}" cy="${y+40}" r="6"/><circle cx="${x+64}" cy="${y-60}" r="6"/><circle cx="${x+70}" cy="${y-110}" r="5"/><circle cx="${x+56}" cy="${y-20}" r="5"/></g>
+  <circle cx="${x+92}" cy="${y-166}" r="3.5" fill="${K}"/><path d="M${x+104} ${y-154} Q${x+108} ${y-150} ${x+112} ${y-156}" fill="none" stroke="${K}" stroke-width="2.5"/>`;
+}
+function wings(x,y){ return `<path d="M${x-14} ${y-6} Q${x-90} ${y-70} ${x-110} ${y-10} Q${x-70} ${y-20} ${x-14} ${y+12}Z" fill="#fff" stroke="${K}" stroke-width="3"/><path d="M${x+14} ${y-6} Q${x+90} ${y-70} ${x+110} ${y-10} Q${x+70} ${y-20} ${x+14} ${y+12}Z" fill="#fff" stroke="${K}" stroke-width="3"/>`; }
+function plant(x,y,wilted){
+  const stem = wilted ? `<path d="M${x} ${y} Q${x+4} ${y-60} ${x+40} ${y-50}" fill="none" stroke="#8A9A4A" stroke-width="6" stroke-linecap="round"/><ellipse cx="${x+48}" cy="${y-42}" rx="16" ry="8" fill="#B9A35A" stroke="${K}" stroke-width="2.5" transform="rotate(40 ${x+48} ${y-42})"/><ellipse cx="${x-14}" cy="${y-28}" rx="16" ry="7" fill="#B9A35A" stroke="${K}" stroke-width="2.5" transform="rotate(50 ${x-14} ${y-28})"/>`
+    : `<path d="M${x} ${y} V${y-80}" stroke="#3E8E4A" stroke-width="6"/><ellipse cx="${x-20}" cy="${y-50}" rx="20" ry="9" fill="#59B36A" stroke="${K}" stroke-width="2.5"/><ellipse cx="${x+20}" cy="${y-66}" rx="20" ry="9" fill="#59B36A" stroke="${K}" stroke-width="2.5"/>`;
+  return `${stem}<path d="M${x-34} ${y} L${x+34} ${y} L${x+24} ${y+50} L${x-24} ${y+50}Z" fill="#D9824B" stroke="${K}" stroke-width="3"/>`;
+}
+const svg = (inner,label) => `<svg class="scene" viewBox="0 0 640 400" role="img" aria-label="${label}">${inner}</svg>`;
+
+/* ---------- scenes ---------- */
+const LEVELS = [
+ { key:"l1", name:"第一關　假如……", short:"假如塔",
+   pattern:`<span class="chip if">假如＋假設的情況</span><span class="arrow">，</span><span class="chip then">會怎麼樣</span>`,
+   starter:"假如",
+   scenes:[
+    { title:"明天下大雨", hints:["操場","雨傘","淋濕","體育課"], kws:["雨","傘","淋","操場","體育"],
+      example:"假如明天下大雨，我們就不能在操場上體育課了。",
+      art:()=>svg(sky("#8FA6BC")+cloud(70,60,1.3,"#C7D3DE")+cloud(380,50,1.5,"#C7D3DE")+rain()+ground("#7FA86A",300)+building(380,170,200,130,"#F2E3C6")+`<rect x="455" y="240" width="50" height="60" fill="#A0714F" stroke="${K}" stroke-width="3"/>`+`<ellipse cx="140" cy="360" rx="70" ry="12" fill="#9EC0DA"/><ellipse cx="420" cy="350" rx="50" ry="9" fill="#9EC0DA"/>`+kid(200,286,"#E8833A")+`<path d="M150 214 Q200 160 250 214Z" fill="#59A9EC" stroke="${K}" stroke-width="3"/><line x1="200" y1="214" x2="200" y2="262" stroke="${K}" stroke-width="3"/>`,"下大雨的學校操場，一個小朋友撐著傘") },
+    { title:"我能和動物說話", hints:["動物園","聊天","長頸鹿","小狗"], kws:["動物","說話","聊","問","長頸鹿","狗","鳥","猴"],
+      example:"假如我能和動物說話，我想問長頸鹿站那麼高看到了什麼。",
+      art:()=>svg(sky("#BFE3F2")+sun(70,70)+cloud(260,60,.9)+ground("#9BC88A",320)+`<g stroke="${K}" stroke-width="3"><line x1="0" y1="300" x2="640" y2="300"/><line x1="0" y1="330" x2="640" y2="330"/>${[20,80,140,200,260,320,380,440,500,560,620].map(x=>`<line x1="${x}" y1="290" x2="${x}" y2="340"/>`).join("")}</g>`+giraffe(330,222)+`<g stroke="${K}" stroke-width="3"><ellipse cx="560" cy="330" rx="34" ry="20" fill="#D9A46A"/><circle cx="590" cy="304" r="18" fill="#D9A46A"/><ellipse cx="600" cy="292" rx="7" ry="13" fill="#8A5A33" transform="rotate(25 600 292)"/><rect x="535" y="340" width="8" height="18" fill="#D9A46A"/><rect x="570" y="340" width="8" height="18" fill="#D9A46A"/><path d="M526 322 q-14 -10 -6 -22" fill="none"/></g><circle cx="594" cy="302" r="2.5" fill="${K}"/>`+`<g stroke="${K}" stroke-width="3"><ellipse cx="90" cy="282" rx="18" ry="13" fill="#59A9EC"/><circle cx="104" cy="272" r="9" fill="#59A9EC"/><path d="M112 270 l10 3 l-10 3z" fill="#F5A623"/></g><circle cx="106" cy="270" r="2" fill="${K}"/>`+kid(210,300,"#E8833A")+`<g stroke="${K}" stroke-width="3" fill="#fff"><path d="M150 150 h110 a16 16 0 0 1 16 16 v34 a16 16 0 0 1 -16 16 h-60 l-16 18 l2 -18 h-36 a16 16 0 0 1 -16 -16 v-34 a16 16 0 0 1 16 -16z"/><path d="M470 30 h110 a16 16 0 0 1 16 16 v30 a16 16 0 0 1 -16 16 h-82 l-20 16 l4 -16 h-12 a16 16 0 0 1 -16 -16 v-30 a16 16 0 0 1 16 -16z"/><path d="M60 200 h70 a14 14 0 0 1 14 14 v24 a14 14 0 0 1 -14 14 h-30 l-6 14 l-6 -14 h-28 a14 14 0 0 1 -14 -14 v-24 a14 14 0 0 1 14 -14z"/></g><g fill="${K}"><circle cx="186" cy="183" r="5"/><circle cx="205" cy="183" r="5"/><circle cx="224" cy="183" r="5"/><circle cx="506" cy="61" r="5"/><circle cx="525" cy="61" r="5"/><circle cx="544" cy="61" r="5"/><circle cx="80" cy="226" r="4"/><circle cx="95" cy="226" r="4"/><circle cx="110" cy="226" r="4"/></g>`,"動物園裡，小朋友和長頸鹿、小狗、小鳥互相說話") },
+    { title:"我有一對翅膀", hints:["飛","天空","翅膀","雲"], kws:["飛","翅膀","天空","雲","鳥"],
+      example:"假如我有一對翅膀，我想飛到台北101的頂端看風景。",
+      art:()=>svg(sky("#A9D4F5")+cloud(40,90,1.2)+cloud(430,60,1.1)+cloud(480,240,.9)+`<g opacity=".9">`+building(40,300,70,100,"#F2E3C6")+building(130,320,60,80,"#E7D9F0")+building(470,290,80,110,"#D3E3F0")+building(560,310,60,90,"#F6DCC2")+`</g>`+wings(320,190)+kid(320,200,"#59A9EC"),"一個長了翅膀的小朋友在城市上空飛翔") },
+    { title:"我是老師", hints:["上課","黑板","同學","作業"], kws:["老師","上課","學生","同學","教","黑板","作業","課"],
+      example:"假如我是老師，我要每個星期帶大家到戶外上一堂自然課。",
+      art:()=>svg(sky("#F4EBDD")+`<rect x="0" y="300" width="640" height="100" fill="#C9A27A"/><rect x="150" y="40" width="420" height="190" fill="#2F5D4A" stroke="#7A5230" stroke-width="10"/><g stroke="#F3F0E8" stroke-width="4" stroke-linecap="round" fill="none"><path d="M190 90 h120"/><path d="M190 130 h80 M290 130 h90"/><path d="M190 170 h150"/><path d="M430 80 l40 70 h-80z"/></g><rect x="150" y="230" width="420" height="10" fill="#7A5230"/>`+kid(100,250,"#E8833A")+`<line x1="125" y1="230" x2="190" y2="150" stroke="#7A5230" stroke-width="5" stroke-linecap="round"/><rect x="60" y="280" width="90" height="70" fill="#A0714F" stroke="${K}" stroke-width="3"/>`+[[230,"#59A9EC"],[340,"#B48CFF"],[450,"#7FD6C2"],[560,"#FF8FA3"]].map(([x,c])=>`<g stroke="${K}" stroke-width="3"><rect x="${x-26}" y="318" width="52" height="40" rx="12" fill="${c}"/><circle cx="${x}" cy="300" r="20" fill="${K}"/><rect x="${x-46}" y="356" width="92" height="14" fill="#A0714F"/></g>`).join(""),"教室裡，一個小朋友站在黑板前當老師，同學坐在台下聽課") },
+    { title:"我是 YouTuber", hints:["拍影片","頻道","訂閱","觀眾"], kws:["YouTuber","影片","拍","頻道","訂閱","觀眾","直播","分享","介紹"],
+      example:"假如我是YouTuber，我要拍影片介紹臺灣有名的建築。",
+      art:()=>svg(sky("#EDE6F7")+`<rect x="0" y="320" width="640" height="80" fill="#B9A6D6"/><rect x="40" y="40" width="230" height="150" rx="14" fill="#fff" stroke="${K}" stroke-width="4"/><rect x="56" y="56" width="198" height="100" rx="8" fill="#FF5A5F"/><path d="M140 82 L140 130 L178 106Z" fill="#fff"/><g fill="#FF5A5F" stroke="${K}" stroke-width="2"><path d="M70 172 c-6 -8 -16 -2 -10 6 l10 10 l10 -10 c6 -8 -4 -14 -10 -6z"/></g><rect x="100" y="168" width="70" height="12" rx="6" fill="#E0E0E0"/><rect x="190" y="166" width="54" height="16" rx="8" fill="#FF5A5F"/>`+kid(470,280,"#59A9EC")+`<g stroke="${K}" stroke-width="3"><circle cx="560" cy="150" r="46" fill="none" stroke="#FFE08A" stroke-width="10"/><line x1="560" y1="196" x2="560" y2="330"/><line x1="560" y1="330" x2="530" y2="370"/><line x1="560" y1="330" x2="590" y2="370"/></g><g stroke="${K}" stroke-width="3"><line x1="300" y1="270" x2="300" y2="340"/><line x1="300" y1="340" x2="270" y2="372"/><line x1="300" y1="340" x2="330" y2="372"/><rect x="262" y="226" width="76" height="48" rx="8" fill="#3A4656"/><circle cx="300" cy="250" r="16" fill="#8FB3D6"/><circle cx="300" cy="250" r="7" fill="${K}"/><rect x="338" y="238" width="16" height="24" fill="#3A4656"/></g><circle cx="276" cy="236" r="6" fill="#FF3B30"/>`,"小朋友對著攝影機拍影片，旁邊有補光燈和影片頻道畫面") },
+    { title:"地震來了", hints:["搖晃","阻尼器","大樓","安全"], kws:["地震","搖","晃","阻尼器","大樓","安全"],
+      example:"如果大樓裡沒有阻尼器，地震時就會搖晃得很厲害。",
+      art:()=>svg(sky("#DCEBF5")+ground("#B59A7A",330)+`<path d="M0 330 L60 322 L110 336 L170 320 L230 338 L300 322 L380 336 L450 320 L520 336 L640 324" fill="none" stroke="${K}" stroke-width="3"/>`+`<g transform="rotate(-5 320 330)">`+building(250,90,140,240,"#F2E3C6")+`<line x1="320" y1="110" x2="320" y2="190" stroke="${K}" stroke-width="3"/><circle cx="320" cy="205" r="22" fill="#FFD23F" stroke="${K}" stroke-width="3"/></g>`+`<g stroke="${K}" stroke-width="4" stroke-linecap="round" fill="none"><path d="M210 140 Q200 160 210 180"/><path d="M190 130 Q176 160 190 190"/><path d="M430 140 Q440 160 430 180"/><path d="M450 130 Q464 160 450 190"/></g>`+kid(100,300,"#E8833A",{sad:true})+kid(540,300,"#59A9EC",{sad:true}),"地震時大樓在搖晃，大樓裡面有一顆黃色的阻尼器") },
+    { title:"忘記澆水", hints:["澆水","植物","枯萎","太陽"], kws:["澆水","植物","枯","花","葉","水"],
+      example:"如果忘記幫植物澆水，它就會慢慢枯萎。",
+      art:()=>svg(sky("#FCE3B0")+sun(540,80)+`<g stroke="#F2A541" stroke-width="3" fill="none"><path d="M380 70 q10 -10 20 0 t20 0"/><path d="M370 110 q10 -10 20 0 t20 0"/></g>`+ground("#E3C9A0",300)+`<rect x="40" y="280" width="560" height="20" fill="#A0714F" stroke="${K}" stroke-width="3"/>`+plant(200,230,true)+plant(330,230,true)+`<g transform="translate(460 220)"><path d="M0 20 h70 v50 h-70z" fill="#7FB3E0" stroke="${K}" stroke-width="3"/><path d="M70 30 L110 0" stroke="${K}" stroke-width="6" stroke-linecap="round"/><path d="M10 20 Q35 -10 60 20" fill="none" stroke="${K}" stroke-width="4"/></g>`,"大太陽下，兩盆植物垂下葉子快要枯萎，旁邊放著澆水壺") },
+    { title:"每天認真練習", hints:["練習","進步","寫字","獎盃"], kws:["練習","進步","認真","字","讀書","獎"],
+      example:"如果每天認真練習寫字，我的字就會越來越漂亮。",
+      art:()=>svg(sky("#E8E2F4")+`<rect x="440" y="60" width="140" height="100" fill="#fff" stroke="${K}" stroke-width="4"/><path d="M462 140 L490 100 L515 124 L545 80 L565 110" fill="none" stroke="#24804B" stroke-width="5" stroke-linejoin="round"/>`+ground("#CDB892",310)+kid(230,230,"#E8833A")+`<rect x="120" y="260" width="300" height="20" fill="#A0714F" stroke="${K}" stroke-width="3"/><rect x="140" y="280" width="14" height="40" fill="#A0714F"/><rect x="386" y="280" width="14" height="40" fill="#A0714F"/><rect x="190" y="240" width="90" height="22" fill="#fff" stroke="${K}" stroke-width="3"/><line x1="236" y1="240" x2="236" y2="262" stroke="${K}" stroke-width="2"/><line x1="300" y1="190" x2="300" y2="250" stroke="${K}" stroke-width="4"/><path d="M285 190 L330 170 L330 200 Z" fill="#FFD23F" stroke="${K}" stroke-width="3"/>`+`<g transform="translate(470 210)"><path d="M0 0 h50 v20 q0 30 -25 34 q-25 -4 -25 -34z" fill="#FFD23F" stroke="${K}" stroke-width="3"/><rect x="15" y="54" width="20" height="16" fill="#FFD23F" stroke="${K}" stroke-width="3"/><rect x="5" y="70" width="40" height="10" fill="#A0714F" stroke="${K}" stroke-width="3"/></g>`,"小朋友坐在書桌前認真寫字，旁邊有獎盃和進步的圖表") },
+    { title:"手機收訊不良", hints:["收訊","通訊","聯絡","山上"], kws:["收訊","訊號","通訊","手機","電話","聯絡"],
+      example:"如果手機收訊不良，我們就聯絡不到家人。",
+      art:()=>svg(sky("#CFE6F5")+cloud(420,70,1)+`<path d="M-20 320 L140 120 L260 260 L380 90 L560 320Z" fill="#8FB58A" stroke="${K}" stroke-width="3"/><path d="M380 90 L420 140 L395 138 L380 160 L362 132 L345 138Z" fill="#fff"/>`+ground("#7FA86A",320)+kid(250,300,"#59A9EC",{sad:true})+`<rect x="300" y="170" width="70" height="120" rx="12" fill="${K}"/><rect x="308" y="182" width="54" height="90" rx="4" fill="#BFE3F7"/><g fill="${K}"><rect x="318" y="246" width="7" height="10"/><rect x="329" y="238" width="7" height="18" opacity=".25"/><rect x="340" y="228" width="7" height="28" opacity=".25"/></g><path d="M330 196 l14 14 m0 -14 l-14 14" stroke="#C0392B" stroke-width="4" stroke-linecap="round"/>`,"在山上，小朋友看著手機，訊號只有一格") }
+   ]}
+];
+
+/* ---------- state ---------- */
+const LS = "sentence-site-v1";
+let st = {lv:0, idx:[0,0], done:[[],[]], wall:[], name:""};
+try{ const r = localStorage.getItem(LS); if(r){ const d = JSON.parse(r); if(d && Array.isArray(d.wall)) st = Object.assign(st,d); } }catch(e){}
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} }
+
+/* ---------- rendering ---------- */
+function curLevel(){ return LEVELS[st.lv]; }
+function curScene(){ return curLevel().scenes[st.idx[st.lv]]; }
+function renderScene(){
+  const L = curLevel(), S = curScene(), i = st.idx[st.lv];
+  $("lv1").classList.toggle("on",st.lv===0); $("lv2").classList.toggle("on",st.lv===1);
+  $("lv1").setAttribute("aria-selected",st.lv===0); $("lv2").setAttribute("aria-selected",st.lv===1);
+  $("code").textContent = `L${st.lv+1}-0${i+1}`;
+  $("sceneTitle").textContent = S.title;
+  $("sceneBox").innerHTML = S.art();
+  $("pattern").innerHTML = `<b>句型：</b>${L.pattern}`;
+  $("hints").innerHTML = `可以用的詞：` + S.hints.map(h=>`<button class="hint" data-h="${esc(h)}">${esc(h)}</button>`).join("");
+  $("dots").innerHTML = L.scenes.map((s,k)=>`<button class="dot${st.done[st.lv].includes(k)?" done":""}${k===i?" cur":""}" data-k="${k}" aria-label="第 ${k+1} 題">${k+1}</button>`).join("");
+  $("answer").value = L.starter;
+  $("answer").placeholder = st.lv===0 ? "假如……，……。" : "如果……，就……。";
+  $("fb").className = "feedback"; $("fb").innerHTML = "";
+}
+function renderSite(){
+  [0,1].forEach(l=>{
+    const items = st.wall.filter(w=>w.lv===l);
+    const el = $(l===0?"tower1":"tower2");
+    el.innerHTML = `<div class="base"></div>` + items.map(w=>`<div class="floor">${"<i></i>".repeat(w.stars)}</div>`).join("") + (items.length?`<div class="roof"></div><div class="spire"></div>`:"");
+    $(l===0?"n1":"n2").textContent = items.length;
+  });
+  $("wall").innerHTML = st.wall.length ? st.wall.slice().reverse().map(w=>`<li class="${w.lv?"l2":""}">${esc(w.text)}<span>${w.who?esc(w.who)+"・":""}${LEVELS[w.lv].scenes[w.scene].title}・${"★".repeat(w.stars)}</span></li>`).join("") : `<li class="empty">還沒有句子，快來造第一句吧！</li>`;
+}
+
+/* ---------- checking ---------- */
+function normalize(s){
+  return s.replace(/\s+/g,"").replace(/,/g,"，").replace(/\.$/,"。").replace(/!$/,"！").replace(/\?$/,"？");
+}
+function check(raw){
+  const s = normalize(raw);
+  const L = st.lv, S = curScene();
+  const items = []; let pass = true;
+  const comma = s.search(/[，,]/);
+  if(L===0){
+    const a = s.indexOf("假如");
+    const hasIf = a>=0; items.push({ok:hasIf, t:"有用「假如」開頭說出假設的情況"}); if(!hasIf) pass=false;
+    const hasComma = comma>a && hasIf; items.push({ok:hasComma, t:"用逗號「，」把前後兩半分開"}); if(!hasComma) pass=false;
+    const front = hasComma ? s.slice(a+2,comma) : "";
+    const back = hasComma ? s.slice(comma+1).replace(/[。！？]$/,"") : "";
+    const okFront = front.length>=2; items.push({ok:okFront, t:"前半句說出一個假設的情況"}); if(!okFront) pass=false;
+    const okBack = back.length>=4; items.push({ok:okBack, t:"後半句說出會怎麼樣（至少 4 個字）"}); if(!okBack) pass=false;
+  } else {
+    const a = s.indexOf("如果"), b = s.indexOf("就", a+2);
+    const hasIf = a>=0; items.push({ok:hasIf, t:"有用「如果」說出假設的情況"}); if(!hasIf) pass=false;
+    const hasThen = hasIf && b>a; items.push({ok:hasThen, t:"後半句有「就」，而且在「如果」後面"}); if(!hasThen) pass=false;
+    const hasComma = comma>a && hasIf && (b<0 || comma<b); items.push({ok:hasComma, t:"「就」前面的半句用逗號「，」隔開"}); if(!hasComma) pass=false;
+    const front = hasComma ? s.slice(a+2,comma) : (hasThen ? s.slice(a+2,b) : "");
+    const back = hasThen ? s.slice(b+1).replace(/[。！？]$/,"") : "";
+    const okFront = front.length>=2; items.push({ok:okFront, t:"「如果」後面說出一個情況"}); if(!okFront) pass=false;
+    const okBack = back.length>=2; items.push({ok:okBack, t:"「就」後面說出可能的結果"}); if(!okBack) pass=false;
+  }
+  let stars = 0;
+  const usedKw = S.kws.filter(k=>s.includes(k));
+  if(pass){
+    stars = 1;
+    if(usedKw.length) stars++;
+    if(s.replace(/[，。！？、]/g,"").length>=14) stars++;
+  }
+  let text = /[。！？]$/.test(s) ? s : s+"。";
+  return {pass, stars, items, usedKw, text};
+}
+function highlight(text){
+  let h = esc(text);
+  if(st.lv===0){
+    h = h.replace(/^(.*?假如[^，]*，)(.*)$/, '<span class="mark-if">$1</span><span class="mark-then">$2</span>');
+  } else {
+    h = h.replace(/^(.*?如果[^，]*，?)(.*就.*)$/, '<span class="mark-if">$1</span><span class="mark-then">$2</span>');
+  }
+  return h;
+}
+
+let lastPassed = null;
+$("check").onclick = ()=>{
+  const raw = $("answer").value.trim();
+  const fb = $("fb");
+  const starter = curLevel().starter;
+  if(!raw || raw===starter){ fb.className="feedback show no"; fb.innerHTML=`<div class="fb-title">先寫下你的句子喔！</div><div>看看圖片，想一想：${st.lv===0?"假如……會怎麼樣？":"如果……，就會怎樣？"}</div>`; return; }
+  const r = check(raw);
+  const list = `<ul class="checks">${r.items.map(i=>`<li class="${i.ok?"y":"n"}">${i.t}</li>`).join("")}</ul>`;
+  if(r.pass){
+    fb.className = "feedback show ok";
+    const praise = ["句子蓋得很穩！","好棒的句子！","工程師級的句子！"][r.stars-1];
+    fb.innerHTML = `<div class="fb-title">${praise}</div><div class="stars" aria-label="${r.stars} 顆星">${"★".repeat(r.stars)}${"☆".repeat(3-r.stars)}</div><div style="font-size:22px">${highlight(r.text)}</div>${list}<div style="font-size:16px;color:var(--muted)">${r.usedKw.length?`有用到情境裡的詞：<span class="kw">${r.usedKw.join("、")}</span>。`:"再加上圖片裡的東西，可以多得一顆星。"}${r.stars<3?" 句子再說長一點、具體一點，也能多一顆星。":""}</div>`;
+    st.wall.push({lv:st.lv, scene:st.idx[st.lv], text:r.text, stars:r.stars, who:$("name").value.trim(), t:Date.now()});
+    if(!st.done[st.lv].includes(st.idx[st.lv])) st.done[st.lv].push(st.idx[st.lv]);
+    save(); renderSite();
+    $("dots").querySelectorAll(".dot")[st.idx[st.lv]].classList.add("done");
+    beep(true);
+    lastPassed = r.text;
+    if(st.done[st.lv].length===curLevel().scenes.length && !st["cel"+st.lv]){
+      st["cel"+st.lv] = true; save();
+      setTimeout(()=>showCel(),900);
+    }
+  } else {
+    fb.className = "feedback show no";
+    fb.innerHTML = `<div class="fb-title">這層樓還差一點點，修一修再試一次！</div>${list}<div style="font-size:16px;color:var(--muted)">提示：${st.lv===0?"假如＋情況，＋會怎麼樣。":"如果＋情況，＋就＋結果。"}</div>`;
+    beep(false);
+  }
+};
+$("example").onclick = ()=>{
+  const fb = $("fb");
+  fb.className = "feedback show info";
+  fb.innerHTML = `<div class="fb-title">範例句</div><div style="font-size:22px">${highlight(curScene().example)}</div><div style="font-size:16px;color:var(--muted)">橘色是假設的情況，藍色是可能的結果。試著換一個不一樣的想法！</div>`;
+};
+$("next").onclick = ()=>{
+  const n = curLevel().scenes.length;
+  st.idx[st.lv] = (st.idx[st.lv]+1)%n; save(); renderScene();
+};
+$("dots").addEventListener("click",e=>{ const d=e.target.closest("[data-k]"); if(!d) return; st.idx[st.lv]=+d.dataset.k; save(); renderScene(); });
+$("hints").addEventListener("click",e=>{
+  const h = e.target.closest("[data-h]"); if(!h) return;
+  const ta = $("answer"); const p = ta.selectionStart ?? ta.value.length;
+  ta.value = ta.value.slice(0,p) + h.dataset.h + ta.value.slice(ta.selectionEnd ?? p);
+  ta.focus(); const np = p + h.dataset.h.length; ta.setSelectionRange(np,np);
+});
+$("answer").addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); $("check").click(); } });
+$("lv1").onclick = ()=>{ st.lv=0; save(); renderScene(); };
+$("lv2").onclick = ()=>{ st.lv=1; save(); renderScene(); };
+$("name").value = st.name||"";
+$("name").addEventListener("change",()=>{ st.name=$("name").value.trim(); save(); });
+
+let armed=false;
+$("clearWall").onclick = ()=>{
+  const b=$("clearWall");
+  if(!armed){ armed=true; b.textContent="確定清空？再按一次"; setTimeout(()=>{armed=false;b.textContent="清空句子牆與大樓";},4000); return; }
+  armed=false; b.textContent="清空句子牆與大樓";
+  st.wall=[]; st.done=[[],[]]; st.cel0=false; st.cel1=false; save(); renderSite(); renderScene();
+};
+
+function showCel(){
+  const last = st.lv===0;
+  $("celTitle").textContent = last ? "第一關完工！假如塔蓋好了" : "第二關完工！如果就塔蓋好了";
+  $("celText").textContent = last ? "五個情境都造好了「假如……」的句子。準備挑戰「如果……就……」吧！" : "兩棟大樓都完工了，你們是最棒的造句工程師！";
+  $("celGo").textContent = last ? "前往第二關" : "回到工地";
+  $("cel").classList.add("show");
+}
+$("celGo").onclick = ()=>{ $("cel").classList.remove("show"); if(st.lv===0){ st.lv=1; save(); renderScene(); } };
+
+/* ---------- sound ---------- */
+let ac=null;
+function beep(good){
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const notes = good ? [523.25,659.25,783.99] : [330,262];
+    notes.forEach((f,i)=>{ const o=ac.createOscillator(), g=ac.createGain(); o.type="triangle"; o.frequency.value=f;
+      const t=ac.currentTime+i*0.1; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.2,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t+0.3); });
+  }catch(e){}
+}
+
+/* ---------- AI 小老師 (optional) ---------- */
+let sampler = null;
+(async()=>{
+  try{
+    if(!window.claude || !window.claude.use) return;
+    const s = await window.claude.use("sample");
+    if(!s) return;
+    sampler = s; $("aiBtn").hidden = false;
+  }catch(e){}
+})();
+$("aiBtn").onclick = async ()=>{
+  if(!sampler) return;
+  const text = $("answer").value.trim();
+  if(!text || text===curLevel().starter){ $("check").click(); return; }
+  const fb = $("fb"), btn = $("aiBtn");
+  btn.disabled = true; fb.className = "feedback show info"; fb.innerHTML = `<div class="fb-title">AI 小老師正在看你的句子……</div>`;
+  const pattern = st.lv===0 ? "「假如……，……」" : "「如果……，就……」";
+  const prompt = `你是一位溫柔的臺灣國小四年級國語老師。學生正在練習假設複句${pattern}。
+情境圖片描述：${curScene().title}。
+學生寫的句子：「${text}」
+請用繁體中文、小四學生看得懂的話回饋，只輸出 JSON，格式：
+{"ok":true或false（句型和意思是否合理）,"praise":"一句具體的稱讚，20字內","tip":"一個具體的修改建議，30字內；如果已經很好就寫怎麼讓句子更生動","better":"根據學生原意改寫後的更好句子，必須使用${pattern}句型"}`;
+  try{
+    const r = await sampler(prompt, {modelTier:"quick"});
+    const m = (r.text||"").match(/\{[\s\S]*\}/);
+    const d = m ? JSON.parse(m[0]) : null;
+    if(!d) throw {code:"parse"};
+    fb.className = "feedback show " + (d.ok ? "ok" : "no");
+    fb.innerHTML = `<div class="fb-title">AI 小老師說</div><div>${esc(d.praise||"")}</div><div><b>建議：</b>${esc(d.tip||"")}</div>${d.better?`<div><b>可以這樣寫：</b>${highlight(d.better)}</div>`:""}<div style="font-size:14px;color:var(--muted)">AI 的建議僅供參考，按「檢查句子」才會把句子蓋進大樓。</div>`;
+  }catch(e){
+    if(e && e.code==="not_granted"){ btn.hidden = true; }
+    fb.className = "feedback show no";
+    fb.innerHTML = `<div class="fb-title">AI 小老師現在沒辦法回答</div><div>可以先按「檢查句子」，或稍後再試一次。</div>`;
+  }
+  btn.disabled = false;
+};
+
+renderScene(); renderSite();
+})();
+</script>
+</body>
+</html>
