@@ -57,8 +57,11 @@ header{background:var(--board);color:var(--board-ink);padding:14px 20px;display:
 .tbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 12px;font-weight:500}
 .tbtn:hover{border-color:var(--muted)}
 .sync{font-size:13px;color:var(--muted);margin-left:auto}
+.toolbar .classSel{font-weight:700;font-size:16px;border:2px solid var(--board);padding:6px 12px}
+.tsep{width:1px;height:24px;background:var(--line);margin:0 4px}
 
 .notice{margin:12px 20px 0;padding:10px 14px;border-radius:12px;background:#fff7dc;border:1px solid #f1df9e;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:14px}
+.notice[hidden]{display:none}
 .notice button{border:0;background:var(--ink);color:#fff;border-radius:8px;padding:5px 10px;font-size:13px}
 
 main{padding:16px 20px 40px}
@@ -190,6 +193,10 @@ textarea{min-height:160px;resize:vertical}
 </header>
 
 <div class="toolbar">
+  <label for="classSel">班級</label>
+  <select id="classSel" class="classSel"></select>
+  <button class="tbtn" id="bNewClass">＋ 新增班級</button>
+  <span class="tsep" aria-hidden="true"></span>
   <label for="sortSel">排列</label>
   <select id="sortSel">
     <option value="order">依座號</option>
@@ -268,6 +275,25 @@ textarea{min-height:160px;resize:vertical}
   </div>
 </div>
 
+<!-- new class dialog -->
+<div class="scrim" id="dNewClass" role="dialog" aria-modal="true" aria-labelledby="ncTitle">
+  <div class="dlg">
+    <div class="dlg-h"><h2 id="ncTitle">新增班級</h2><button class="x" data-close aria-label="關閉">×</button></div>
+    <div class="dlg-b">
+      <div class="sec">
+        <h3><label for="ncName">班級名稱</label></h3>
+        <input class="inp" id="ncName" placeholder="例如：二年級 甲班">
+      </div>
+      <div class="sec">
+        <h3><label for="ncText">學生名單（可以先空著，之後再加）</label></h3>
+        <textarea id="ncText" placeholder="一行一個名字，也可以從 Excel 複製貼上"></textarea>
+      </div>
+      <label class="row" style="font-size:15px"><input type="checkbox" id="ncCopy" checked> 沿用目前班級的加分、扣分項目</label>
+      <div class="row"><button class="btn dark" id="ncGo">建立班級</button><span class="hint" id="ncMsg"></span></div>
+    </div>
+  </div>
+</div>
+
 <!-- settings dialog -->
 <div class="scrim" id="dSet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
   <div class="dlg">
@@ -304,6 +330,7 @@ textarea{min-height:160px;resize:vertical}
         <div class="row">
           <button class="btn danger" id="bResetAll">全班分數歸零</button>
           <button class="btn danger" id="bDelAll">刪除全部學生</button>
+          <button class="btn danger" id="bDelClass">刪除這個班級</button>
           <span class="hint">按一次會詢問，再按一次才執行。</span>
         </div>
       </div>
@@ -354,25 +381,43 @@ const ANIMAL_NAMES = {cat:"貓咪",dog:"小狗",rabbit:"兔子",bear:"熊",panda
 function mkStudent(name,i){
   return {id:uid(),name:name,points:0,mood:null,color:PALETTE[i%PALETTE.length],animal:ANIMALS[i%ANIMALS.length],log:[]};
 }
-function migrate(){
-  state.students.forEach((s,i)=>{ if(!s.animal || ANIMALS.indexOf(s.animal)<0) s.animal = ANIMALS[i%ANIMALS.length]; if(!s.color) s.color = PALETTE[i%PALETTE.length]; });
+function migrateClass(c){
+  if(!c.id) c.id = uid();
+  if(!Array.isArray(c.students)) c.students = [];
+  if(!Array.isArray(c.pos)) c.pos = defaults().pos;
+  if(!Array.isArray(c.neg)) c.neg = defaults().neg;
+  if(!c.className) c.className = "我的班級";
+  if(typeof c.sound!=="boolean") c.sound = true;
+  if(!c.sort) c.sort = "order";
+  c.students.forEach((s,i)=>{ if(!s.animal || ANIMALS.indexOf(s.animal)<0) s.animal = ANIMALS[i%ANIMALS.length]; if(!s.color) s.color = PALETTE[i%PALETTE.length]; if(!Array.isArray(s.log)) s.log=[]; });
+  return c;
 }
-
-let state = null;
-try { const raw = localStorage.getItem(LS_KEY); if(raw) state = JSON.parse(raw); } catch(e) {}
-if(!state || !Array.isArray(state.students)) state = defaults();
-migrate();
+/* root = { v:2, current:<class id>, classes:[ class, ... ] }; an older single-class save is wrapped */
+function toRoot(d){
+  if(d && Array.isArray(d.classes) && d.classes.length){
+    d.classes.forEach(migrateClass);
+    if(!d.classes.some(c=>c.id===d.current)) d.current = d.classes[0].id;
+    d.v = 2; return d;
+  }
+  if(d && Array.isArray(d.students)){ const c = migrateClass(d); return {v:2, current:c.id, classes:[c]}; }
+  return null;
+}
+let root = null, state = null;
+try { const raw = localStorage.getItem(LS_KEY); if(raw) root = toRoot(JSON.parse(raw)); } catch(e) {}
+if(!root){ const c = migrateClass(defaults()); root = {v:2, current:c.id, classes:[c]}; }
+function pickCurrent(){ state = root.classes.find(c=>c.id===root.current) || root.classes[0]; root.current = state.id; }
+pickCurrent();
 
 /* ---------- persistence ---------- */
 let dbRef = null, writing = false, dirty = false, timer = null;
 function save(){
-  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify(root)); } catch(e) {}
   if(dbRef){ dirty = true; clearTimeout(timer); timer = setTimeout(flush, 700); }
 }
 async function flush(){
   if(!dbRef || writing || !dirty) return;
   writing = true; dirty = false;
-  try { await dbRef.set(JSON.parse(JSON.stringify(state))); setSync("已同步到你的帳號，換電腦也看得到"); }
+  try { await dbRef.set(JSON.parse(JSON.stringify(root))); setSync("已同步到你的帳號，換電腦也看得到"); }
   catch(e){ setSync("暫時無法同步，資料先存在這台電腦"); if(e && e.code==="invalid_argument"){ dbRef = null; } }
   writing = false;
   if(dirty) flush();
@@ -390,8 +435,17 @@ function setSync(t){ document.getElementById("sync").textContent = t; }
     const snap = await ref.get();
     if(snap.exists){
       const d = snap.data();
-      if(d && Array.isArray(d.students)){ state = JSON.parse(JSON.stringify(d)); migrate(); try{localStorage.setItem(LS_KEY, JSON.stringify(state));}catch(e){} render(); }
+      const r = toRoot(d ? JSON.parse(JSON.stringify(d)) : null);
+      let needWrite = !!(d && !Array.isArray(d.classes));
+      if(r){
+        /* keep any class that exists only on this computer */
+        const ids = new Set(r.classes.map(c=>c.id));
+        const localOnly = root.classes.filter(c=>!ids.has(c.id) && !c.demo && c.students.length);
+        if(localOnly.length){ r.classes = r.classes.concat(localOnly); needWrite = true; }
+        root = r; pickCurrent(); try{localStorage.setItem(LS_KEY, JSON.stringify(root));}catch(e){} render();
+      }
       dbRef = ref; setSync("已同步到你的帳號，換電腦也看得到");
+      if(needWrite){ dirty = true; flush(); }
     } else {
       dbRef = ref; dirty = true; flush();
     }
@@ -486,6 +540,8 @@ function todayStart(){ const d=new Date(); d.setHours(0,0,0,0); return d.getTime
 
 function render(){
   $("className").textContent = state.className;
+  $("classSel").innerHTML = root.classes.map(c=>`<option value="${c.id}"${c.id===state.id?" selected":""}>${esc(c.className)}（${c.students.length} 人）</option>`).join("");
+  $("bDelClass").hidden = root.classes.length<2;
   $("sortSel").value = state.sort;
   $("bSound").textContent = "音效：" + (state.sound ? "開" : "關");
   $("bSound").setAttribute("aria-pressed", state.sound ? "true" : "false");
@@ -724,19 +780,53 @@ $("setClass").addEventListener("change",()=>{ const v=$("setClass").value.trim()
 $("addPos").onclick=()=>{ state.pos.push({id:uid(),label:"新的加分項目",pts:1}); save(); behRows("pos"); };
 $("addNeg").onclick=()=>{ state.neg.push({id:uid(),label:"新的扣分項目",pts:1}); save(); behRows("neg"); };
 $("bCopy").onclick=async()=>{
-  const txt = JSON.stringify(state);
+  const txt = JSON.stringify(root);
   $("backup").value = txt;
   try{ await navigator.clipboard.writeText(txt); $("bkMsg").textContent="已複製，請貼到記事本保存。"; }
   catch(e){ $("backup").select(); $("bkMsg").textContent="無法自動複製，請按 Ctrl+C 複製框內文字。"; }
 };
 $("bRestore").onclick=()=>{
   try{
-    const d = JSON.parse($("backup").value);
-    if(!d || !Array.isArray(d.students) || !Array.isArray(d.pos) || !Array.isArray(d.neg)) throw 0;
-    state = d; save(); render(); $("setClass").value=state.className; behRows("pos"); behRows("neg");
-    $("bkMsg").textContent = `已還原 ${state.students.length} 位學生。`;
+    const r = toRoot(JSON.parse($("backup").value));
+    if(!r) throw 0;
+    /* a backup of all classes replaces everything; a backup of one class (older version) is added or replaces that class */
+    if(r.classes.length===1 && !JSON.parse($("backup").value).classes){
+      const c = r.classes[0];
+      root.classes = root.classes.filter(x=>x.id!==c.id).concat([c]); root.current = c.id;
+    } else { root = r; }
+    pickCurrent(); save(); render(); $("setClass").value=state.className; behRows("pos"); behRows("neg");
+    $("bkMsg").textContent = `已還原 ${root.classes.length} 個班級，目前是「${state.className}」。`;
   }catch(e){ $("bkMsg").textContent="這段文字不是有效的備份，請確認有完整複製。"; }
 };
+
+/* ---------- classes ---------- */
+function switchClass(id){
+  root.current = id; pickCurrent(); undoInfo = null; hideToast(); save(); render();
+}
+$("classSel").onchange = ()=>switchClass($("classSel").value);
+$("bNewClass").onclick = ()=>{ $("ncName").value=""; $("ncText").value=""; $("ncMsg").textContent=""; $("ncCopy").checked=true; openD("dNewClass"); setTimeout(()=>$("ncName").focus(),50); };
+$("ncGo").onclick = ()=>{
+  const name = $("ncName").value.trim();
+  if(!name){ $("ncMsg").textContent = "請先輸入班級名稱，例如「二年級 甲班」。"; return; }
+  const names = $("ncText").value.split(/[\n,，、;；\t]+|\s{1,}/).map(x=>x.trim()).filter(Boolean);
+  const base = defaults();
+  const copy = $("ncCopy").checked;
+  const c = migrateClass({
+    id: uid(), className: name, sort: "order", sound: state.sound, demo: false,
+    pos: copy ? state.pos.map(b=>({id:uid(),label:b.label,pts:b.pts})) : base.pos,
+    neg: copy ? state.neg.map(b=>({id:uid(),label:b.label,pts:b.pts})) : base.neg,
+    students: names.map((n,i)=>mkStudent(n,i))
+  });
+  root.classes.push(c);
+  closeD("dNewClass");
+  switchClass(c.id);
+};
+$("ncName").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("ncGo").click(); } });
+twoStep($("bDelClass"),"刪除這個班級","確定刪除整個班級？再按一次",()=>{
+  if(root.classes.length<2) return;
+  root.classes = root.classes.filter(c=>c.id!==state.id);
+  root.current = root.classes[0].id; pickCurrent(); save(); render(); closeD("dSet");
+});
 
 /* ---------- toolbar ---------- */
 $("sortSel").onchange=()=>{ state.sort=$("sortSel").value; save(); render(); };
